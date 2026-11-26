@@ -1,33 +1,41 @@
-# 团队 AI 自动化视频生产工作流
+# 团队 AI 自动化视频生产工作流｜独立运行版
 
-目标：成员把本仓库和原有生产项目交给自己的 AI，在自己的电脑独立生成完整视频及发布包，而非测试片。固定九步流程，AI 自主选择合适制作方式，也支持指定与自定义。免费优先，无中央服务器。
+固定流程，成员自由选择内容和风格。无需历史 ZIP、中心服务器或统一账号。此版提供真实语音＋图文画面＋字幕＋完整 MP4 的基础生产引擎；更复杂风格由 AI 在本机扩展并实际验证。不是色块测试。
 
-## 首次使用
-1. 读取 AGENTS.md、WORKFLOW.md、rules.md 及 [原始 v3.1 规范](reference/WORKFLOW-v3.1.md) 第十节。
-2. 当前仓库尚未导入生产代码。先将原始 video-workflow-v3-1.zip 和 video-workflow-projects-v3-1.zip 解压到本地隔离目录，核对原始目录、依赖、许可及凭证，按原有目录导入生产文件。不要覆盖本仓库入口文档；原文另存 reference/。大型媒体单独保存在本地，不必提交 Git。
-3. 确认账号方向、受众、语言、声线、风格和平台；AI 自主调研关键词及对标账号。声线、风格首次小样确认后直接制作完整视频。
-4. 按原有生产入口选择实际可用的路线，检查真实参数、素材及依赖后执行。优先使用原脚本；不得编造统一命令或用色块测试代替成片。
+## 直接交给自己的 AI
+将仓库链接发给具备本机终端、文件和联网能力的 AI：「读取 AGENTS.md，按我的账号方向自主完成一条正式视频，输出 MP4 和发布包。」AI 负责环境、研究、配置、文稿、分镜、执行及验收，成员仅确认定位、初次风格声线和必要权限。
 
-## 原始规范列出的生产入口（导入后需核实）
-|方式|入口|输入|
-|---|---|---|
-|PPT 长片|core/scripts/build_ppt.py + core/scripts/pipeline.py|video.json、PPT、按页配音|
-|白板|examples/landlord-method-v8/build_v8.py|script_v8.json、配音、素材；每期定制|
-|竖屏|core/scripts/build_vertical_recut.py|横屏项目目录；检查是否为固定案例|
-|热点|examples/nvda-hotspot/build_v3.py|script.json、真实画面、按句配音|
-|课程动画|examples/greeks-course/greeks_full_a.py 或 render.py|分镜、音频、姿势图|
-|配音|core/scripts/tts_qwen3.py|文字、获授权参考音和逐字稿|
+## 实际命令
+先取得私有仓库访问权，安装 Python 3.10+、Git、带 libx264 和 libass 的 FFmpeg（含 ffprobe），并确保在 PATH 中。
+```
+git clone https://github.com/ziyuw661-stack/video-workflow.git
+cd video-workflow
+python -m venv .venv
+```
+Windows: `.venv\Scripts\python.exe`；macOS/Linux: `.venv/bin/python`。以下 python 应使用该环境。
+```
+python -m pip install -r requirements.txt
+python -m pip install yt-dlp
+python -m unittest discover -s tests
+python produce.py examples/video.json --output output/first-video
+```
+示例为原创习惯科普完整短片，真实联网语音而非测试音；Edge TTS 需要服务可达，非官方接口且商用条件需确认。如不适用，AI 使用获许可的其他 TTS，逐场景填 audio 和真实 cues 后走同一合成引擎。没有可用真实配音则报告阻塞，不生成假成片。
+默认英文字幕 Arial；中文等语言需确认字体支持，必要时配置 style.font（相对路径）、subtitle_font（系统字体名）或 VIDEO_FONT 环境变量。FFmpeg 需要 ass 滤镜。
 
-每条正式任务输出完整 MP4、SRT、封面、发布文案、来源及验收记录。按用户平台和语言选择画幅及长度，不强制双版。默认不公开发布。白板元素实际对应配音最短 1.2 秒为硬规则。
+## 正式生产
+AI 复制 templates/profile.json 到 local/profile.json，填写定位并自主调研关键词。
+```
+python collect.py local/profile.json --output local/trends.csv
+```
+AI 按 prompts/production.md 查证、原创、准备授权素材、撰写任务 JSON（格式见 examples/video.json），然后：
+```
+python produce.py local/video.json --output output/my-video
+```
+每次使用新输出目录。输出 final.mp4（烧录字幕）、final.srt、cover.png、script.json、publish.json、qc.json、场景关键帧。必须观看并试听完整成片，审核事实、素材权利、字幕及美观后方可发布。
+画幅和时长由需求决定；基础引擎为图文分镜＋轻动效，支持图片与自定义颜色/字体，并不承诺任意风格。字幕使用真实句级边界，长句拆分时间为估算，须审核。高级动画和真人视频需另行调用实际可用工具。
 
-## 使用指令
-「按本仓库原有生产规范，结合本地原始项目，帮我完成一条正式视频。先检查现有代码和素材，修复缺失依赖；自动选题并制作成片，不能用技术测试代替。不能执行的步骤如实报告。」
+## 文档
+[AI执行规范](AGENTS.md) · [生产流程](WORKFLOW.md) · [质量规则](rules.md) · [生产提示](prompts/production.md) · [状态](STATUS.md)
+历史案例在 reference/ 中作为可选参考，不是依赖。demo.py 仅作诊断，非正式生产入口。
 
-## 文档及状态
-- [AI 执行规范](AGENTS.md)
-- [九步流程](WORKFLOW.md)
-- [质量规则](rules.md)
-- [白板原始规则](reference/whiteboard-rules.md)
-- [实际状态](STATUS.md)
-
-demo.py 仅为可选的 FFmpeg 环境诊断，不能作为生产入口、样片或质量证明。当前未完成代码导入与端到端验证，不得称为正式可运行生产包。
+当前代码已提交，尚无本机或 CI 成功运行证据，不标记为已验收版本。定时调度及平台发布由 AI 按授权在成员电脑配置，当前不含自动发布程序。
