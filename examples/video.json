@@ -1,0 +1,37 @@
+{
+  "title": "Why small habits matter",
+  "language": "en",
+  "voice": "en-US-AriaNeural",
+  "width": 1280,
+  "height": 720,
+  "style": {
+    "background": "#142638",
+    "accent": "#69D6B5",
+    "foreground": "#FFFFFF"
+  },
+  "description": "A practical introduction to building sustainable habits.",
+  "tags": [
+    "habits",
+    "learning"
+  ],
+  "scenes": [
+    {
+      "heading": "Start smaller",
+      "body": "Make the first step easy.",
+      "narration": "A habit is easier to repeat when the first step is small. Instead of planning an hour of reading, start with one page.",
+      "visual": ""
+    },
+    {
+      "heading": "Attach a cue",
+      "body": "Connect it to an existing routine.",
+      "narration": "Choose a routine you already follow, like making coffee, and attach your new habit to it.",
+      "visual": ""
+    },
+    {
+      "heading": "Repeat and adjust",
+      "body": "Focus on consistency, not perfection.",
+      "narration": "Track your progress, adjust when something is not working, and return to the routine after a missed day. Small actions are a starting point, not a guarantee of results.",
+      "visual": ""
+    }
+  ]
+}
