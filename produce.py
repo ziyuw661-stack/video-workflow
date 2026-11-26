@@ -152,15 +152,38 @@ async def synth(text, voice, audio, subtitles):
         raise RuntimeError("TTS returned no usable audio or sentence timing; use another voice or supply audio with timed cues.")
     return cues
 
-def validate_cues(cues, duration):
-    last=0.0
+def validate_cues(cues, duration, overlap_tolerance=0.0, corrections=None):
+    """Normalize small provider boundary overlaps, never synthesize new timings.
+
+    Tolerance is opt-in for provider metadata only. External and final
+    timelines remain strict. Preserve the later cue's actual onset by
+    trimming the preceding cue's end; reject reversed/empty intervals.
+    """
+    duration=float(duration)
+    if not math.isfinite(duration) or duration<=0:
+        raise ValueError("Invalid audio duration")
     valid=[]
-    for start,end,text in cues:
-        start=float(start); end=min(float(end),duration)
-        if start<last-.001 or end<=start or not str(text).strip():
-            raise ValueError("Invalid or overlapping cue")
-        valid.append((max(last,start),end,str(text).strip()))
-        last=end
+    for index,(start,end,text) in enumerate(cues,1):
+        start=float(start); end=float(end); text=str(text).strip()
+        if not math.isfinite(start) or not math.isfinite(end) or start<0 or end<=start or not text:
+            raise ValueError(f"Invalid cue {index}: {start} -> {end}")
+        if end>duration+max(overlap_tolerance,.001):
+            raise ValueError(f"Cue {index} exceeds audio duration: {end} > {duration}")
+        if end>duration:
+            if corrections is not None:
+                corrections.append({"cue":index,"kind":"audio_end_trim","seconds":round(end-duration,6)})
+            end=duration
+        if valid and start<valid[-1][1]:
+            prev_start,prev_end,prev_text=valid[-1]
+            overlap=prev_end-start
+            if overlap>max(overlap_tolerance,1e-7)+1e-9 or start<=prev_start or start>=end:
+                raise ValueError(f"Cue {index} overlaps previous cue by {overlap:.3f}s")
+            valid[-1]=(prev_start,start,prev_text)
+            if corrections is not None:
+                corrections.append({"cue":index-1,"kind":"provider_overlap_trim","seconds":round(overlap,6)})
+        if end<=start:
+            raise ValueError(f"Cue {index} is empty after clipping")
+        valid.append((start,end,text))
     if not valid:
         raise ValueError("No subtitle cues")
     return valid
@@ -223,7 +246,7 @@ async def render(specfile, output):
     output.mkdir(parents=True,exist_ok=True)
     w,h=spec["width"],spec["height"]
     count=len(spec["scenes"])
-    combined=[]; paths=[]; offset=0.0
+    combined=[]; paths=[]; offset=0.0; timing_corrections=[]
     artwork(spec,spec["scenes"][0],0,count,base,output/"cover.png",True)
     with tempfile.TemporaryDirectory(prefix="video_workflow_") as temp:
         work=Path(temp)
@@ -238,7 +261,13 @@ async def render(specfile, output):
             else:
                 cues=await synth(scene["narration"],spec["voice"],audio,None)
             duration=audio_duration(audio)
-            cues=split_cues(validate_cues(cues,duration),w,h,spec["language"])
+            scene_corrections=[]
+            cues=split_cues(validate_cues(cues,duration,
+                overlap_tolerance=0.0 if scene.get("audio") else 0.10,
+                corrections=scene_corrections),w,h,spec["language"])
+            timing_corrections.extend(dict(item,scene=i+1) for item in scene_corrections)
+            if scene_corrections:
+                print(f"Scene {i+1}: normalized {len(scene_corrections)} small timing boundaries",flush=True)
             frames=math.ceil(duration*25)
             clip_duration=frames/25
             image=work/f"p{i:03}.png"
@@ -285,6 +314,7 @@ async def render(specfile, output):
     (output/"qc.json").write_text(json.dumps({"technical_checks":"passed","duration_seconds":dur,"av_difference_seconds":avdiff,
         "dimensions":[w,h],"subtitle_end_seconds":combined[-1][1],
         "visual_audio_content_review":"pending","timing_note":"sentence boundaries real; subdivisions estimated; review alignment",
+        "timing_corrections":timing_corrections,
         "publication":"blocked_until_review"},indent=2),encoding="utf-8")
     print(f"Complete video: {final}")
 
