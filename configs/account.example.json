@@ -1,0 +1,31 @@
+{
+  "account_id": "my_channel",
+  "workspace": "~/Desktop/AI视频工作流",
+  "state_root": "~/.video-workflow",
+  "timezone": "Asia/Shanghai",
+  "direction": "Replace with your channel's focus",
+  "audience": "Replace with target viewers",
+  "region": "US",
+  "keywords": [],
+  "channel_ids": [],
+  "most_popular": false,
+  "lookback_days": 90,
+  "collect_limit": 8,
+  "topic_threshold": 70,
+  "allow_ytdlp_fallback": false,
+  "language": "en",
+  "voice": "en-US-AriaNeural",
+  "width": 1280,
+  "height": 720,
+  "target_seconds": 60,
+  "ollama_model": "qwen3:4b",
+  "production_accepted": false,
+  "schedule": {},
+  "publication": {
+    "manual_hosts": ["www.youtube.com", "youtube.com", "youtu.be"],
+    "youtube_enabled": false,
+    "youtube_channel_id": "",
+    "allow_scheduling": false,
+    "made_for_kids": null
+  }
+}

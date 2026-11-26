@@ -1,0 +1,10 @@
+{
+  "slideshow": {"module_id":"slideshow","version":1,"status":"available","entry":"produce.py","dependencies":["Python 3.10+","FFmpeg","Pillow","authorized TTS or external timed speech"],"inputs":"examples/video.json","formats":["16:9","9:16"],"requirements":"Use licensed material and voices","outputs":["final.mp4","final.srt","timeline.json","audio/"],"tests":"python -m unittest discover -s tests","example":"examples/video.json","fallback":null},
+  "course_motion": {"status":"requires_import_and_acceptance","reference":"examples/greeks-course/greeks_full_a.py"},
+  "whiteboard": {"status":"requires_import_and_acceptance","reference":"examples/landlord-method-v8/build_v8.py"},
+  "ppt_motion": {"status":"requires_import_and_acceptance","reference":"core/scripts/build_ppt.py"},
+  "hotspot_mix": {"status":"requires_import_and_acceptance","reference":"examples/nvda-hotspot/build_v3.py"},
+  "vertical_recut": {"status":"requires_import_and_acceptance","reference":"core/scripts/build_vertical_recut.py"},
+  "dialogue": {"status":"requires_import_and_acceptance"},
+  "batch_mix": {"status":"requires_import_and_acceptance"}
+}

@@ -246,7 +246,8 @@ async def render(specfile, output):
     output.mkdir(parents=True,exist_ok=True)
     w,h=spec["width"],spec["height"]
     count=len(spec["scenes"])
-    combined=[]; paths=[]; offset=0.0; timing_corrections=[]
+    combined=[]; paths=[]; offset=0.0; timing_corrections=[]; timeline=[]
+    (output/"audio").mkdir()
     artwork(spec,spec["scenes"][0],0,count,base,output/"cover.png",True)
     with tempfile.TemporaryDirectory(prefix="video_workflow_") as temp:
         work=Path(temp)
@@ -261,6 +262,8 @@ async def render(specfile, output):
             else:
                 cues=await synth(scene["narration"],spec["voice"],audio,None)
             duration=audio_duration(audio)
+            original=output/"audio"/f"scene-{i+1:03}{audio.suffix.lower()}"
+            shutil.copyfile(audio,original)
             scene_corrections=[]
             cues=split_cues(validate_cues(cues,duration,
                 overlap_tolerance=0.0 if scene.get("audio") else 0.10,
@@ -284,6 +287,7 @@ async def render(specfile, output):
                 "-c:a","aac","-ar","48000","-ac","2",clip)
             actual=float(probe(clip)["format"]["duration"])
             combined.extend((offset+a,offset+b,t) for a,b,t in cues)
+            timeline.append({"scene_id":scene.get("scene_id",i+1),"start":offset,"end":offset+actual, "audio":original.relative_to(output).as_posix(), "image":f"scene-{i+1:03}.png", "subtitles":[[offset+a,offset+b,t] for a,b,t in cues], "audio_duration":duration, "actions":[], "sfx":[], "transition":{"kind":"fade_in","seconds":fade}})
             offset+=actual
             paths.append(clip.name)
         (work/"concat.txt").write_text("".join(f"file '{p}'\n" for p in paths),encoding="utf-8")
@@ -316,6 +320,7 @@ async def render(specfile, output):
         "visual_audio_content_review":"pending","timing_note":"sentence boundaries real; subdivisions estimated; review alignment",
         "timing_corrections":timing_corrections,
         "publication":"blocked_until_review"},indent=2),encoding="utf-8")
+    (output/"timeline.json").write_text(json.dumps({"language":spec["language"],"width":w,"height":h,"fps":25,"scenes":timeline},ensure_ascii=False,indent=2),encoding="utf-8")
     print(f"Complete video: {final}")
 
 def main():
