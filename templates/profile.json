@@ -1,0 +1,17 @@
+{
+  "account": "",
+  "direction": "",
+  "audience": "",
+  "market": "",
+  "language": "",
+  "platform": "",
+  "style": "auto",
+  "voice": "",
+  "width": 1280,
+  "height": 720,
+  "target_seconds": 60,
+  "frequency": "",
+  "keywords": [],
+  "benchmark_channels": [],
+  "publish_mode": "manual"
+}
