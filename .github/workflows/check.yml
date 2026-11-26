@@ -8,6 +8,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -r requirements.txt
+      - run: pip install -r requirements-workflow.txt
       - run: python -m unittest discover -s tests
       - run: python -m py_compile produce.py collect.py
